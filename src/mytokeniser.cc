@@ -13,7 +13,7 @@ using namespace std;
 #define jsstr(x) String::New(x)
 #define jssym(x) String::NewSymbol(x)
 #define jsstr2(x, y) String::New(x, y)
-#define setobj(x, key, value) obj->Set(key, value)
+#define setobj(x, key, value) x->Set(key, value)
 
 static hubbub_error token_handler(const hubbub_token *token, void *pw);
 
@@ -35,7 +35,6 @@ Tokeniser::Tokeniser() {
 }
 Tokeniser::~Tokeniser() {
   delete stream_;
-  delete tok_;
   uv_mutex_destroy(&mutex_);
 }
 
@@ -151,6 +150,22 @@ void AsyncAfter(uv_work_t* req) {
         
         ((Tokeniser*) work->tokeniser)->unlock();
       }
+      {
+        Local<Object> doneObj = v8::Object::New();
+        setobj(doneObj, jssym("type"), jsstr("done"));
+
+        const unsigned argc = 2;
+        Local<Value> argv[argc] = {
+            Local<Value>::New(Null()),
+            doneObj
+        };
+
+        TryCatch try_catch;
+        work->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        if (try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
+      }
     }
 
     work->callback.Dispose();
@@ -198,17 +213,17 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
 }
 
 void Tokeniser::lock() {
-  uv_mutex_lock(&mutex_);
+  // uv_mutex_lock(&mutex_);
 }
 
 void Tokeniser::unlock() {
-  uv_mutex_unlock(&mutex_);
+  // uv_mutex_unlock(&mutex_);
 }
 
 void Tokeniser::doWork(BWork *work) {
   // convert work->html into buf & bytes_read
   lock();
-  tokens_.clear();
+  // tokens_.clear();
   parserutils_inputstream_append(stream_, (const uint8_t *) work->html, work->len);
   hubbub_tokeniser_run(tok_);
   unlock();
