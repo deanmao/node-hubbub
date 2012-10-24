@@ -49,8 +49,6 @@ class Tokeniser : public node::ObjectWrap {
   void clearTokens() {tokens_.clear();};
   void lock();
   void unlock();
-  void cdataMode();
-  void normalMode();
   std::list< MyToken > getTokens() {return tokens_;};
 
  private:

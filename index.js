@@ -42,7 +42,16 @@ Parser.prototype.parseChunk = function(chunk, cb) {
           el.raw = '/' + obj.name;
         } else if (t === 'doctype') {
           el.type = 'doctype';
-          el.name = obj.name || '';
+          el.data = '';
+          if (obj.name) {
+            el.data += ' ' + obj.name;
+          }
+          if (obj.attributes.public) {
+            el.data += ' PUBLIC \"' + obj.attributes.public + '\"';
+          }
+          if (obj.attributes.system) {
+            el.data += ' \"' + obj.attributes.system + '\"';
+          }
         } else if (t === 'comment') {
           el.type = 'comment';
           el.data = obj.data;
@@ -57,7 +66,7 @@ Parser.prototype.parseChunk = function(chunk, cb) {
         if (t !== 'eof' && t !== 'done') {
           self.handler.write(el);
         }
-        if (obj.attributes) {
+        if (obj.attributes && t !== 'doctype') {
           var attrs = obj.attributes;
           for(var key in attrs) {
             if (attrs.hasOwnProperty(key)) {

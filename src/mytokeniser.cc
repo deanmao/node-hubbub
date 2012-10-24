@@ -60,17 +60,28 @@ Handle<Value> Tokeniser::New(const Arguments& args) {
 }
 
 void AsyncWork(uv_work_t* req) {
-    // BWork* work = static_cast<BWork*>(req->data);
-    // Tokeniser *t = (Tokeniser *) work->tokeniser;
-    // t->doWork(work);
+  BWork* work = static_cast<BWork*>(req->data);
+  Tokeniser *t = (Tokeniser *) work->tokeniser;
+  t->doWork(work);
+}
+
+void setObjectProperties(Local<Object> obj, list<MyToken>::iterator token) {
+  setobj(obj, jssym("name"), jsstr(token->name.c_str()));
+  {
+    Local<Object> attrObj = v8::Object::New();
+    list<MyAttribute> attrs = token->attributes;
+    list<MyAttribute>::iterator attr;
+    for(attr=attrs.begin(); attr != attrs.end(); ++attr) {
+      setobj(attrObj, jsstr(attr->name.c_str()), jsstr(attr->value.c_str()));
+    }
+    setobj(obj, jssym("attributes"), attrObj);
+  }
 }
 
 void AsyncAfter(uv_work_t* req) {
     HandleScope scope;
     BWork* work = static_cast<BWork*>(req->data);
-
-    Tokeniser *t = (Tokeniser *) work->tokeniser;
-    t->doWork(work);
+    Tokeniser* tokeniser = (Tokeniser*) work->tokeniser;
     
     if (work->error) {
         Local<Value> err = Exception::Error(String::New("error"));
@@ -85,43 +96,25 @@ void AsyncAfter(uv_work_t* req) {
         }
     } else {
         // loop through all objects and call with each one
-        ((Tokeniser*) work->tokeniser)->lock();
-        list<MyToken> tokens = ((Tokeniser*) work->tokeniser)->getTokens();
+        tokeniser->lock();
+        list<MyToken> tokens = tokeniser->getTokens();
         list<MyToken>::iterator token;
         for(token=tokens.begin(); token != tokens.end(); ++token) {
           Local<Object> obj = v8::Object::New();
           switch (token->type) {
             case HUBBUB_TOKEN_DOCTYPE:
               setobj(obj, jssym("type"), jsstr("doctype"));
-              setobj(obj, jssym("name"), jsstr(token->name.c_str()));
+              setObjectProperties(obj, token);
               break;
         
             case HUBBUB_TOKEN_START_TAG:
               setobj(obj, jssym("type"), jsstr("start"));
-              setobj(obj, jssym("name"), jsstr(token->name.c_str()));
-              {
-                Local<Object> attrObj = v8::Object::New();
-                list<MyAttribute> attrs = token->attributes;
-                list<MyAttribute>::iterator attr;
-                for(attr=attrs.begin(); attr != attrs.end(); ++attr) {
-                  setobj(attrObj, jsstr(attr->name.c_str()), jsstr(attr->value.c_str()));
-                }
-                setobj(obj, jssym("attributes"), attrObj);
-              }
+              setObjectProperties(obj, token);
               break;
         
             case HUBBUB_TOKEN_END_TAG:
               setobj(obj, jsstr("type"), jsstr("end"));
-              setobj(obj, jssym("name"), jsstr(token->name.c_str()));
-              {
-                Local<Object> attrObj = v8::Object::New();
-                list<MyAttribute> attrs = token->attributes;
-                list<MyAttribute>::iterator attr;
-                for(attr=attrs.begin(); attr != attrs.end(); ++attr) {
-                  setobj(attrObj, jsstr(attr->name.c_str()), jsstr(attr->value.c_str()));
-                }
-                setobj(obj, jssym("attributes"), attrObj);
-              }
+              setObjectProperties(obj, token);
               break;
 
             case HUBBUB_TOKEN_COMMENT:
@@ -150,7 +143,8 @@ void AsyncAfter(uv_work_t* req) {
             node::FatalException(try_catch);
         }
         
-        ((Tokeniser*) work->tokeniser)->unlock();
+        tokeniser->clearTokens();
+        tokeniser->unlock();
       }
       {
         Local<Object> doneObj = v8::Object::New();
@@ -215,34 +209,19 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
 }
 
 void Tokeniser::lock() {
-  // uv_mutex_lock(&mutex_);
+  pthread_mutex_lock(&mutex_);
 }
 
 void Tokeniser::unlock() {
-  // uv_mutex_unlock(&mutex_);
+  pthread_mutex_unlock(&mutex_);
 }
 
 void Tokeniser::doWork(BWork *work) {
-  // convert work->html into buf & bytes_read
   lock();
-  tokens_.clear();
   parserutils_inputstream_append(stream_, (const uint8_t *) work->html, work->len);
   hubbub_tokeniser_run(tok_);
   unlock();
 }
-
-void Tokeniser::cdataMode() {
-  hubbub_tokeniser_optparams params;
-  params.content_model.model = HUBBUB_CONTENT_MODEL_CDATA;
-  hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_CONTENT_MODEL, &params);
-}
-
-void Tokeniser::normalMode() {
-  hubbub_tokeniser_optparams params;
-  params.content_model.model = HUBBUB_CONTENT_MODEL_PCDATA;
-  hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_TOKEN_HANDLER, &params);
-}
-
 
 void Tokeniser::addToken(const hubbub_token *token) {
   MyToken *mytoken = new MyToken();
@@ -251,6 +230,18 @@ void Tokeniser::addToken(const hubbub_token *token) {
   switch (token->type) {
     case HUBBUB_TOKEN_DOCTYPE:
       mytoken->name = string((char*) token->data.doctype.name.ptr, (int) token->data.doctype.name.len);
+      if (!token->data.doctype.public_missing) {
+        MyAttribute *myattr = new MyAttribute();
+        myattr->name = string("public");
+        myattr->value = string((char *) token->data.doctype.public_id.ptr, (int) token->data.doctype.public_id.len);
+        mytoken->attributes.push_back(*myattr);
+      }
+      if (!token->data.doctype.system_missing) {
+        MyAttribute *myattr = new MyAttribute();
+        myattr->name = string("system");
+        myattr->value = string((char *) token->data.doctype.system_id.ptr, (int) token->data.doctype.system_id.len);
+        mytoken->attributes.push_back(*myattr);
+      }
       break;
 
     case HUBBUB_TOKEN_START_TAG:
@@ -263,7 +254,9 @@ void Tokeniser::addToken(const hubbub_token *token) {
       }
       // if start tag is a script, set content_model on tokeniser to be HUBBUB_CONTENT_MODEL_CDATA
       if (mytoken->name.compare(string("script")) == 0) {
-        cdataMode();
+        hubbub_tokeniser_optparams params;
+        params.content_model.model = HUBBUB_CONTENT_MODEL_CDATA;
+        hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_CONTENT_MODEL, &params);
       }
       break;
 
