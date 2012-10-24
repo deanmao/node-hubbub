@@ -25,13 +25,13 @@ static void *myrealloc(void *ptr, size_t len, void *pw)
 Persistent<Function> Tokeniser::constructor;
 
 Tokeniser::Tokeniser() {
+  uv_mutex_init(&mutex_);
   parserutils_inputstream_create("UTF-8", 0, NULL, myrealloc, this, &stream_);
 	hubbub_tokeniser_create(stream_, myrealloc, this, &tok_);
   hubbub_tokeniser_optparams params;
   params.token_handler.handler = token_handler;
 	params.token_handler.pw = this;
 	hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_TOKEN_HANDLER, &params);
-	uv_mutex_init(&mutex_);
 }
 Tokeniser::~Tokeniser() {
   delete stream_;
@@ -61,14 +61,17 @@ Handle<Value> Tokeniser::New(const Arguments& args) {
 }
 
 void AsyncWork(uv_work_t* req) {
-    BWork* work = static_cast<BWork*>(req->data);
-    Tokeniser *t = (Tokeniser *) work->tokeniser;
-    t->doWork(work);
+    // BWork* work = static_cast<BWork*>(req->data);
+    // Tokeniser *t = (Tokeniser *) work->tokeniser;
+    // t->doWork(work);
 }
 
 void AsyncAfter(uv_work_t* req) {
     HandleScope scope;
     BWork* work = static_cast<BWork*>(req->data);
+
+    Tokeniser *t = (Tokeniser *) work->tokeniser;
+    t->doWork(work);
     
     if (work->error) {
         Local<Value> err = Exception::Error(String::New("error"));
@@ -223,15 +226,29 @@ void Tokeniser::unlock() {
 void Tokeniser::doWork(BWork *work) {
   // convert work->html into buf & bytes_read
   lock();
-  // tokens_.clear();
+  tokens_.clear();
   parserutils_inputstream_append(stream_, (const uint8_t *) work->html, work->len);
   hubbub_tokeniser_run(tok_);
   unlock();
 }
 
+void Tokeniser::cdataMode() {
+  hubbub_tokeniser_optparams params;
+  params.content_model.model = HUBBUB_CONTENT_MODEL_CDATA;
+  hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_CONTENT_MODEL, &params);
+}
+
+void Tokeniser::normalMode() {
+  hubbub_tokeniser_optparams params;
+  params.content_model.model = HUBBUB_CONTENT_MODEL_PCDATA;
+  hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_TOKEN_HANDLER, &params);
+}
+
+
 void Tokeniser::addToken(const hubbub_token *token) {
   MyToken *mytoken = new MyToken();
   mytoken->type = token->type;
+  bool shouldAdd = TRUE;
   switch (token->type) {
     case HUBBUB_TOKEN_DOCTYPE:
       mytoken->name = string((char*) token->data.doctype.name.ptr, (int) token->data.doctype.name.len);
@@ -245,6 +262,10 @@ void Tokeniser::addToken(const hubbub_token *token) {
         myattr->value = string((char *) token->data.tag.attributes[i].value.ptr, (int) token->data.tag.attributes[i].value.len);
         mytoken->attributes.push_back(*myattr);
       }
+      // if start tag is a script, set content_model on tokeniser to be HUBBUB_CONTENT_MODEL_CDATA
+      if (mytoken->name.compare(string("script")) == 0) {
+        cdataMode();
+      }
       break;
 
     case HUBBUB_TOKEN_END_TAG:
@@ -255,6 +276,10 @@ void Tokeniser::addToken(const hubbub_token *token) {
         myattr->value = string((char *) token->data.tag.attributes[i].value.ptr, (int) token->data.tag.attributes[i].value.len);
         mytoken->attributes.push_back(*myattr);
       }
+      // if end tag is a script, unset content_model on tokeniser
+      if (mytoken->name.compare(string("script")) == 0) {
+        // normalMode();
+      }
       break;
 
     case HUBBUB_TOKEN_COMMENT:
@@ -263,12 +288,22 @@ void Tokeniser::addToken(const hubbub_token *token) {
 
     case HUBBUB_TOKEN_CHARACTER:
       mytoken->data = string((char*) token->data.character.ptr, (int) token->data.character.len);
+      // check if the previous token was also a character, and if so, squash them together
+      {
+        MyToken *previous = &tokens_.back();
+        if (previous->type == HUBBUB_TOKEN_CHARACTER) {
+          shouldAdd = false;
+          previous->data += mytoken->data;
+        }
+      }
       break;
  
     case HUBBUB_TOKEN_EOF:
       break;
   }
-  tokens_.push_back(*mytoken);
+  if (shouldAdd) {
+    tokens_.push_back(*mytoken);
+  }
 }
 
 hubbub_error token_handler(const hubbub_token *token, void *pw)

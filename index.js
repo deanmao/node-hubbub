@@ -15,6 +15,7 @@ if (binding === null) {
 function Parser(handler) {
   this.tokeniser = new binding.Tokeniser();
   this.handler = handler;
+  this.async = true;
 }
 
 // this function needs to be rewritten so that it blocks until completion
@@ -41,7 +42,7 @@ Parser.prototype.parseChunk = function(chunk, cb) {
           el.raw = '/' + obj.name;
         } else if (t === 'doctype') {
           el.type = 'doctype';
-          el.name = obj.name;
+          el.name = obj.name || '';
         } else if (t === 'comment') {
           el.type = 'comment';
           el.data = obj.data;
