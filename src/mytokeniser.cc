@@ -12,7 +12,6 @@ using namespace std;
 
 #define jsstr(x) String::New(x)
 #define jssym(x) String::NewSymbol(x)
-#define jsstr2(x, y) String::New(x, y)
 #define setobj(x, key, value) x->Set(key, value)
 
 static hubbub_error token_handler(const hubbub_token *token, void *pw);
@@ -275,10 +274,6 @@ void Tokeniser::addToken(const hubbub_token *token) {
         myattr->name = string((char *) token->data.tag.attributes[i].name.ptr, (int) token->data.tag.attributes[i].name.len);
         myattr->value = string((char *) token->data.tag.attributes[i].value.ptr, (int) token->data.tag.attributes[i].value.len);
         mytoken->attributes.push_back(*myattr);
-      }
-      // if end tag is a script, unset content_model on tokeniser
-      if (mytoken->name.compare(string("script")) == 0) {
-        // normalMode();
       }
       break;
 
