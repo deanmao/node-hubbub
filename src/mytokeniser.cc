@@ -18,7 +18,7 @@ static hubbub_error token_handler(const hubbub_token *token, void *pw);
 
 static void *myrealloc(void *ptr, size_t len, void *pw)
 {
-	return realloc(ptr, len);
+  return realloc(ptr, len);
 }
 
 Persistent<Function> Tokeniser::constructor;
@@ -26,11 +26,11 @@ Persistent<Function> Tokeniser::constructor;
 Tokeniser::Tokeniser() {
   uv_mutex_init(&mutex_);
   parserutils_inputstream_create("UTF-8", 0, NULL, myrealloc, this, &stream_);
-	hubbub_tokeniser_create(stream_, myrealloc, this, &tok_);
+  hubbub_tokeniser_create(stream_, myrealloc, this, &tok_);
   hubbub_tokeniser_optparams params;
   params.token_handler.handler = token_handler;
-	params.token_handler.pw = this;
-	hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_TOKEN_HANDLER, &params);
+  params.token_handler.pw = this;
+  hubbub_tokeniser_setopt(tok_, HUBBUB_TOKENISER_TOKEN_HANDLER, &params);
 }
 Tokeniser::~Tokeniser() {
   delete stream_;
@@ -40,7 +40,7 @@ Tokeniser::~Tokeniser() {
 void Tokeniser::Initialize(Handle<Object> target) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
   tpl->SetClassName(String::NewSymbol("Tokeniser"));
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);  
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   tpl->PrototypeTemplate()->Set(String::NewSymbol("process"), FunctionTemplate::New(Process)->GetFunction());
   tpl->PrototypeTemplate()->Set(String::NewSymbol("finish"), FunctionTemplate::New(Finish)->GetFunction());
@@ -55,7 +55,7 @@ Handle<Value> Tokeniser::New(const Arguments& args) {
 
   Tokeniser* w = new Tokeniser();
   w->Wrap(args.This());
-  
+
   return args.This();
 }
 
@@ -82,7 +82,7 @@ void AsyncAfter(uv_work_t* req) {
     HandleScope scope;
     BWork* work = static_cast<BWork*>(req->data);
     Tokeniser* tokeniser = (Tokeniser*) work->tokeniser;
-    
+
     if (work->error) {
         Local<Value> err = Exception::Error(String::New("error"));
 
@@ -106,12 +106,12 @@ void AsyncAfter(uv_work_t* req) {
               setobj(obj, jssym("type"), jsstr("doctype"));
               setObjectProperties(obj, token);
               break;
-        
+
             case HUBBUB_TOKEN_START_TAG:
               setobj(obj, jssym("type"), jsstr("start"));
               setObjectProperties(obj, token);
               break;
-        
+
             case HUBBUB_TOKEN_END_TAG:
               setobj(obj, jsstr("type"), jsstr("end"));
               setObjectProperties(obj, token);
@@ -126,7 +126,7 @@ void AsyncAfter(uv_work_t* req) {
               setobj(obj, jssym("type"), jsstr("character"));
               setobj(obj, jssym("data"), jsstr(token->data.c_str()));
               break;
-                     
+
             case HUBBUB_TOKEN_EOF:
               setobj(obj, jssym("type"), jsstr("eof"));
               break;
@@ -142,7 +142,7 @@ void AsyncAfter(uv_work_t* req) {
         if (try_catch.HasCaught()) {
             node::FatalException(try_catch);
         }
-        
+
         tokeniser->clearTokens();
         tokeniser->unlock();
       }
@@ -167,16 +167,16 @@ void AsyncAfter(uv_work_t* req) {
     work->callback.Dispose();
     delete work;
 }
-  
+
 Handle<Value> Tokeniser::Finish(const Arguments& args) {
   HandleScope scope;
-  
+
   return scope.Close(Undefined());
 }
 
 Handle<Value> Tokeniser::Process(const Arguments& args) {
   HandleScope scope;
-  
+
   if (!args[0]->IsString()) {
       return ThrowException(Exception::TypeError(
           String::New("Second argument must be a javascript string")));
@@ -188,7 +188,7 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
   }
 
   Local<Function> callback = Local<Function>::Cast(args[1]);
-  
+
   BWork* work = new BWork();
   work->error = false;
   work->request.data = work;
@@ -204,7 +204,7 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
 
   int status = uv_queue_work(uv_default_loop(), &work->request, AsyncWork, AsyncAfter);
   assert(status == 0);
-  
+
   return Undefined();
 }
 
@@ -285,7 +285,7 @@ void Tokeniser::addToken(const hubbub_token *token) {
         }
       }
       break;
- 
+
     case HUBBUB_TOKEN_EOF:
       break;
   }
@@ -296,8 +296,8 @@ void Tokeniser::addToken(const hubbub_token *token) {
 
 hubbub_error token_handler(const hubbub_token *token, void *pw)
 {
-	Tokeniser *t = (Tokeniser *) pw;
+  Tokeniser *t = (Tokeniser *) pw;
   t->addToken(token);
 
-	return HUBBUB_OK;
+  return HUBBUB_OK;
 }

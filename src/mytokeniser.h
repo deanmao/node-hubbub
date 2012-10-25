@@ -61,9 +61,9 @@ class Tokeniser : public node::ObjectWrap {
 
   static int argc_;
   static char** argv_;
-  
+
   parserutils_inputstream *stream_;
-	hubbub_tokeniser *tok_;
+  hubbub_tokeniser *tok_;
   std::list< MyToken > tokens_;
   uv_mutex_t mutex_;
 };
