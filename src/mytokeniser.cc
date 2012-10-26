@@ -118,10 +118,8 @@ void AsyncAfter(uv_work_t* req) {
         // loop through all objects and call with each one
         list<MyToken> tokens = work->tokens;
         list<MyToken>::iterator token;
-        bool callDone = false;
         for(token=tokens.begin(); token != tokens.end(); ++token) {
           Local<Object> obj = v8::Object::New();
-          callDone = true;
           switch (token->type) {
             case HUBBUB_TOKEN_DOCTYPE:
               setobj(obj, jssym("type"), jsstr("doctype"));
@@ -154,9 +152,7 @@ void AsyncAfter(uv_work_t* req) {
         }
         makeSuccessCallback(obj, work->callback);
       }
-      if (callDone) {
-        makeSuccessCallback(doneObj, work->callback);
-      }
+      makeSuccessCallback(doneObj, work->callback);
     }
 
     work->callback.Dispose();
