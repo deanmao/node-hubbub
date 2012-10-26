@@ -16,7 +16,7 @@ hopefully I'll get around to fixing these soon.
 ## Installing
 
 ```bash
-$ npm install jsdom
+$ npm install hubbub
 ```
 
 ## Using it with jsdom
