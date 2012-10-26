@@ -9,6 +9,10 @@ There were some types of html that the tautologistics parser was unable
 to handle so I created this native addon that uses an actual web
 browser's parser.  It can be operated in blocking or non-blocking mode.
 
+Similar to tautologistics's parser, it can operate in chunked mode as
+well.  There are currently a few known utf-8 conversion bugs, but
+hopefully I'll get around to fixing these soon.
+
 ## Installing
 
 ```bash
