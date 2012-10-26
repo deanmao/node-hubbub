@@ -27,7 +27,6 @@ Parser.prototype.parseChunk = function(chunk, cb) {
     var self = this;
     this.tokeniser.process(chunk.toString(), function(err, obj) {
       if (obj) {
-        console.log(obj);
         var el = {};
         var t = obj.type
         if (t === 'character') {
