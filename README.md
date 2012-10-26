@@ -26,7 +26,7 @@ node-hubbub's jsdom configuration function before requiring jsdom.
 Here's a brief example:
 
 ```js
-var jsdom = require('node-hubbub').jsdomConfigure(require("jsdom"));
+var jsdom = require('hubbub').jsdomConfigure(require("jsdom"));
 
 jsdom.env({
   html: "http://news.ycombinator.com/",
