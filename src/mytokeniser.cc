@@ -282,9 +282,9 @@ void Tokeniser::addToken(const hubbub_token *token) {
       // check if the previous token was also a character, and if so, squash them together
       {
         MyToken *previous = &(work_->tokens.back());
-        if (previous->type == HUBBUB_TOKEN_CHARACTER) {
+        if (previous->type == HUBBUB_TOKEN_CHARACTER && ((int) token->data.character.len) < 3000) {
           shouldAdd = false;
-          previous->data += mytoken->data;
+          previous->data.append(mytoken->data);
         }
       }
       break;

@@ -12,6 +12,7 @@ if (binding === null) {
   throw new Error('Cannot find appropriate binary library');
 }
 
+// crazy test to ensure we don't get a deadlock scenario
 function loopTest() {
   var mycount = 0;
   var numLoops = 50000;
@@ -58,5 +59,20 @@ function test1() {
   });
 }
 
+function stuff() {
+  console.log('');
+  var z = new binding.Tokeniser();
+  for(var i=1; i<8; i++) {
+    console.log(i);
+    var data = fs.readFileSync("stuff/html_1_chunk_"+i+".html");
+    z.process(data.toString(), function(err, res) {
+      if (res.type == 'done') {
+        console.log('x')
+      }
+    });
+  }
+}
+
+// stuff()
 loopTest();
 // test1();
