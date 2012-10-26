@@ -18,7 +18,6 @@ function Parser(handler) {
   this.async = true;
 }
 
-// this function needs to be rewritten so that it blocks until completion
 Parser.prototype.parseComplete = function(chunk, cb) {
   this.parseChunk(chunk, cb);
 };
@@ -46,11 +45,13 @@ Parser.prototype.parseChunk = function(chunk, cb) {
           if (obj.name) {
             el.data += ' ' + obj.name;
           }
-          if (obj.attributes.public) {
-            el.data += ' PUBLIC \"' + obj.attributes.public + '\"';
-          }
-          if (obj.attributes.system) {
-            el.data += ' \"' + obj.attributes.system + '\"';
+          if (obj.attributes) {
+            if (obj.attributes.public) {
+              el.data += ' PUBLIC \"' + obj.attributes.public + '\"';
+            }
+            if (obj.attributes.system) {
+              el.data += ' \"' + obj.attributes.system + '\"';
+            }
           }
         } else if (t === 'comment') {
           el.type = 'comment';
@@ -70,7 +71,8 @@ Parser.prototype.parseChunk = function(chunk, cb) {
           var attrs = obj.attributes;
           for(var key in attrs) {
             if (attrs.hasOwnProperty(key)) {
-              self.handler.write({type: 'attr', name: key, data: attrs[key]});
+              var attr = {type: 'attr', name: key, data: attrs[key]};
+              self.handler.write(attr);
             }
           }
         }

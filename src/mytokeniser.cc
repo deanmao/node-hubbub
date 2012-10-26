@@ -25,6 +25,7 @@ Persistent<Function> Tokeniser::constructor;
 
 Tokeniser::Tokeniser() {
   uv_mutex_init(&mutex_);
+  uv_sem_init(&sem_, 0);
   parserutils_inputstream_create("UTF-8", 0, NULL, myrealloc, this, &stream_);
   hubbub_tokeniser_create(stream_, myrealloc, this, &tok_);
   hubbub_tokeniser_optparams params;
@@ -37,6 +38,7 @@ Tokeniser::Tokeniser() {
 Tokeniser::~Tokeniser() {
   delete stream_;
   uv_mutex_destroy(&mutex_);
+  uv_sem_destroy(&sem_);
 }
 
 void Tokeniser::Initialize(Handle<Object> target) {
@@ -116,8 +118,10 @@ void AsyncAfter(uv_work_t* req) {
         // loop through all objects and call with each one
         list<MyToken> tokens = work->tokens;
         list<MyToken>::iterator token;
+        bool callDone = false;
         for(token=tokens.begin(); token != tokens.end(); ++token) {
           Local<Object> obj = v8::Object::New();
+          callDone = true;
           switch (token->type) {
             case HUBBUB_TOKEN_DOCTYPE:
               setobj(obj, jssym("type"), jsstr("doctype"));
@@ -150,7 +154,9 @@ void AsyncAfter(uv_work_t* req) {
         }
         makeSuccessCallback(obj, work->callback);
       }
-      makeSuccessCallback(doneObj, work->callback);
+      if (callDone) {
+        makeSuccessCallback(doneObj, work->callback);
+      }
     }
 
     work->callback.Dispose();
@@ -211,12 +217,17 @@ void Tokeniser::doWork(BWork *work) {
       ++sequence_;
     } else {
       pthread_mutex_unlock(&mutex_);
+      mach_timespec_t interval;
+      interval.tv_sec = 0;
+      interval.tv_nsec = 10;
+      semaphore_timedwait(sem_, interval);
     }
   }
   work_ = work;
   parserutils_inputstream_append(stream_, (const uint8_t *) work->html, work->len);
   hubbub_tokeniser_run(tok_);
   pthread_mutex_unlock(&mutex_);
+  semaphore_signal(sem_);
 }
 
 void Tokeniser::addToken(const hubbub_token *token) {
