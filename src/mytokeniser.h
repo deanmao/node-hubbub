@@ -32,24 +32,23 @@ struct MyToken {
 };
 
 struct BWork {
-    uv_work_t request;
-    v8::Persistent<v8::Function> callback;
-    bool error;
-    std::string error_message;
-    char* html;
-    size_t len;
-    void *tokeniser;
+  uv_work_t request;
+  v8::Persistent<v8::Function> callback;
+  bool error;
+  std::string error_message;
+  char* html;
+  size_t len;
+  void *tokeniser;
+  std::list< MyToken > tokens;
+  unsigned int sequence;
 };
 
 class Tokeniser : public node::ObjectWrap {
  public:
   static void Initialize(v8::Handle<v8::Object> target);
   void doWork(BWork *work);
+  int incrementCount();
   void addToken(const hubbub_token *token);
-  void clearTokens() {tokens_.clear();};
-  void lock();
-  void unlock();
-  std::list< MyToken > getTokens() {return tokens_;};
 
  private:
   Tokeniser();
@@ -62,10 +61,12 @@ class Tokeniser : public node::ObjectWrap {
   static int argc_;
   static char** argv_;
 
+  BWork *work_;
   parserutils_inputstream *stream_;
   hubbub_tokeniser *tok_;
-  std::list< MyToken > tokens_;
   uv_mutex_t mutex_;
+  unsigned int count_;
+  unsigned int sequence_;
 };
 
 #endif
