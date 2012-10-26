@@ -59,20 +59,19 @@ function test1() {
   });
 }
 
-function stuff() {
-  console.log('');
-  var z = new binding.Tokeniser();
-  for(var i=1; i<8; i++) {
-    console.log(i);
-    var data = fs.readFileSync("stuff/html_1_chunk_"+i+".html");
-    z.process(data.toString(), function(err, res) {
-      if (res.type == 'done') {
-        console.log('x')
-      }
-    });
-  }
-}
+// function stuff() {
+//   console.log('');
+//   var z = new binding.Tokeniser();
+//   for(var i=1; i<8; i++) {
+//     console.log(i);
+//     var data = fs.readFileSync("stuff/html_1_chunk_"+i+".html");
+//     z.process(data.toString(), function(err, res) {
+//       if (res.type == 'done') {
+//         console.log('x')
+//       }
+//     });
+//   }
+// }
 
-// stuff()
 loopTest();
 // test1();
