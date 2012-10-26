@@ -283,7 +283,7 @@ exports.DefaultHandler = DefaultHandler;
 exports.jsdomConfigure = function(jsdom) {
   var orig = jsdom.browserAugmentation;
   jsdom.browserAugmentation = function(level, options) {
-    options.parser = {Parser: Parser, DefaultHandler: DefaultHandler};
+    options.parser = exports;
     return orig(level, options);
   }
   return jsdom;
