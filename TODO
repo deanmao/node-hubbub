@@ -1,3 +1,4 @@
 -- fix utf-8 conversion bugs
 -- add tests to validate against htmlparser 1.x, 2.x, and general purpose parsing
+-- remove private option in package.json and push to npm
 
