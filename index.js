@@ -32,13 +32,16 @@ Parser.prototype.parseChunk = function(chunk, cb) {
         if (t === 'character') {
           el.type = 'text';
           el.data = obj.data;
+          self.handler.write(el);
         } else if (t === 'start') {
           el.type = 'tag';
           el.name = obj.name;
+          self.handler.write(el);
         } else if (t === 'end') {
           el.type = 'tag';
           el.name = '/' + obj.name;
           el.raw = '/' + obj.name;
+          self.handler.write(el);
         } else if (t === 'doctype') {
           el.type = 'doctype';
           el.data = '';
@@ -53,15 +56,14 @@ Parser.prototype.parseChunk = function(chunk, cb) {
               el.data += ' \"' + obj.attributes.system + '\"';
             }
           }
+          self.handler.write(el);
         } else if (t === 'comment') {
           el.type = 'comment';
           el.data = obj.data;
+          self.handler.write(el);
         } else if (t === 'done') {
           cb && cb();
           return;
-        }
-        if (t !== 'eof' && t !== 'done') {
-          self.handler.write(el);
         }
         if (obj.attributes && t !== 'doctype') {
           var attrs = obj.attributes;
