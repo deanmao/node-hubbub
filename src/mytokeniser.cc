@@ -173,12 +173,18 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
           String::New("First argument must be a javascript string")));
   }
 
-  if (!args[1]->IsFunction()) {
+  if (!args[1]->IsBoolean()) {
       return ThrowException(Exception::TypeError(
-          String::New("Second argument must be a callback function")));
+          String::New("Second argument must be a boolean (true = blocking, false = non-blocking)")));
   }
 
-  Local<Function> callback = Local<Function>::Cast(args[1]);
+
+  if (!args[2]->IsFunction()) {
+      return ThrowException(Exception::TypeError(
+          String::New("Third argument must be a callback function")));
+  }
+
+  Local<Function> callback = Local<Function>::Cast(args[2]);
 
   BWork* work = new BWork();
   work->error = false;
@@ -187,6 +193,7 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
 
   Tokeniser* t = ObjectWrap::Unwrap<Tokeniser>(args.This());
   Local<String> s = args[0]->ToString();
+  bool blocking = args[1]->ToBoolean()->IsTrue();
   String::AsciiValue astr(s);
   work->len = strlen(*astr);
   work->html = new char[work->len + 1];
@@ -194,8 +201,13 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
   work->tokeniser = t;
   work->sequence = t->incrementCount();
 
-  int status = uv_queue_work(uv_default_loop(), &work->request, AsyncWork, AsyncAfter);
-  assert(status == 0);
+  if (blocking) {
+    AsyncWork(&work->request);
+    AsyncAfter(&work->request);
+  } else {
+    int status = uv_queue_work(uv_default_loop(), &work->request, AsyncWork, AsyncAfter);
+    assert(status == 0);
+  }
 
   return Undefined();
 }

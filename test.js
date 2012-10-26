@@ -23,11 +23,11 @@ function loopTest() {
   }
   for (var i=0; i<numLoops; i++) {
     var z = new binding.Tokeniser();
-    z.process("<html", print);
-    z.process("><body", print);
-    z.process("><h1", print);
-    z.process("><b", print);
-    z.process("></body>", print);
+    z.process("<html", false, print);
+    z.process("><body", false, print);
+    z.process("><h1", false, print);
+    z.process("><b", false, print);
+    z.process("></body>", false, print);
   }
   setInterval(function() {
     if (mycount == numLoops) {
@@ -44,20 +44,31 @@ function test2() {
   fs.readFile('mytest2.html', function(err, data) {
     var html = data.toString();
     var len = Math.floor(html.length / 2);
-    z.process(html.slice(0, len), print);
-    z.process(html.slice(len, -1), print);
+    z.process(html.slice(0, len), false, print);
+    z.process(html.slice(len, -1), false, print);
   });
 }
 
-function test1() {
+function testNonBlocking() {
   var z = new binding.Tokeniser();
-  z.process("<h1>", function(err, res) {
+  z.process("<h1>", false, function(err, res) {
     console.log(res);
   });
-  z.process("<h1>", function(err, res) {
+  z.process("<h1>", false, function(err, res) {
     console.log(res);
   });
 }
+
+function testBlocking() {
+  var z = new binding.Tokeniser();
+  z.process("<h1>", true, function(err, res) {
+    console.log(res);
+  });
+  z.process("<h1>", true, function(err, res) {
+    console.log(res);
+  });
+}
+
 
 // function stuff() {
 //   console.log('');
@@ -73,5 +84,6 @@ function test1() {
 //   }
 // }
 
-loopTest();
-// test1();
+// loopTest();
+// testBlocking();
+testNonBlocking();
