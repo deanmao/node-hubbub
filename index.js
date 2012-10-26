@@ -279,3 +279,13 @@ DefaultHandler.prototype.handleElement = function DefaultHandler$handleElement (
 }
 
 exports.DefaultHandler = DefaultHandler;
+
+exports.jsdomConfigure = function(jsdom) {
+  var orig = jsdom.browserAugmentation;
+  jsdom.browserAugmentation = function(level, options) {
+    options.parser = {Parser: Parser, DefaultHandler: DefaultHandler};
+    return orig(level, options);
+  }
+  return jsdom;
+};
+
