@@ -56,10 +56,6 @@ Parser.prototype.parseChunk = function(chunk, cb) {
         } else if (t === 'comment') {
           el.type = 'comment';
           el.data = obj.data;
-        } else if (t === 'eof') {
-          self.handler.done();
-          cb && cb();
-          return;
         } else if (t === 'done') {
           cb && cb();
           return;
