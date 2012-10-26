@@ -612,12 +612,9 @@ hubbub_error hubbub_tokeniser_run(hubbub_tokeniser *tokeniser)
 			cont = hubbub_tokeniser_handle_cdata_block(
 					tokeniser);
 			break;
-		state(STATE_NUMBERED_ENTITY)
+		case STATE_NAMED_ENTITY:
+		case STATE_NUMBERED_ENTITY:
 			cont = hubbub_tokeniser_handle_numbered_entity(
-					tokeniser);
-			break;
-		state(STATE_NAMED_ENTITY)
-			cont = hubbub_tokeniser_handle_named_entity(
 					tokeniser);
 			break;
 		}

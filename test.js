@@ -69,6 +69,35 @@ function testBlocking() {
   });
 }
 
+function testparser(useHtmlparser) {
+  var parser;
+  var count = 0;
+  if (useHtmlparser) {
+    parser = require('htmlparser');
+  } else {
+    parser = require('./index');
+  }
+  var handler = new parser.DefaultHandler();
+  handler.orig = handler.writeTag;
+  handler.writeTag = function(el) {
+    count = count + 1;
+    handler.orig(el);
+  };
+  var parserInstance = new parser.Parser(handler);
+  fs.readFile('acid3.html', function(err, data) {
+    parserInstance.parseComplete(data.toString());
+    console.log(count, 'total html tags');
+  });
+}
+
+function testparser2() {
+  var parser = require('./index');
+  var handler = new parser.DefaultHandler();
+  var parserInstance = new parser.Parser(handler);
+  fs.readFile('blah.html', function(err, data) {
+    parserInstance.parseComplete(data.toString());
+  });
+}
 
 // function stuff() {
 //   console.log('');
@@ -86,4 +115,5 @@ function testBlocking() {
 
 // loopTest();
 // testBlocking();
-testNonBlocking();
+// testNonBlocking();
+testparser2();
