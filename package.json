@@ -1,12 +1,23 @@
 {
   "author": "Dean Mao",
-  "private": true,
   "name": "node-hubbub",
-  "description": "wrapper around libhubbub, node-htmlparser api compatible",
-  "version": "0.1",
+  "description": "wrapper around libhubbub, node-htmlparser 1.x, 2.x api compatible",
+  "version": "0.5",
   "main": "./index.js",
   "gypfile": true,
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/deanmao/node-hubbub/blob/master/LICENSE"
+    }
+  ],
+  "repositories": [
+      {
+          "type": "git",
+          "url": "http://github.com/deanmao/node-hubbub.git"
+      }
+  ],
   "engines": {
-    "node": ">=0.6.18"
+    "node": ">=0.8"
   }
 }
