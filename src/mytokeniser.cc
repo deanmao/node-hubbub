@@ -218,17 +218,13 @@ int Tokeniser::incrementCount() {
 
 void Tokeniser::doWork(BWork *work) {
   bool match = false;
+  pthread_mutex_lock(&mutex_);
   while(!match) {
-    pthread_mutex_lock(&mutex_);
     if (work->sequence == sequence_) {
       match = true;
       ++sequence_;
     } else {
-      pthread_mutex_unlock(&mutex_);
-      timespec interval;
-      interval.tv_sec = 0;
-      interval.tv_nsec = 10;
-      pthread_cond_timedwait(&cond_, &mutex_, &interval);
+      pthread_cond_wait(&cond_, &mutex_);
     }
   }
   work_ = work;
