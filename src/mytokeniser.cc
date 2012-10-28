@@ -241,7 +241,7 @@ void Tokeniser::doWork(BWork *work) {
 void Tokeniser::addToken(const hubbub_token *token) {
   MyToken *mytoken = new MyToken();
   mytoken->type = token->type;
-  bool shouldAdd = TRUE;
+  bool shouldAdd = true;
   switch (token->type) {
     case HUBBUB_TOKEN_DOCTYPE:
       mytoken->name = string((char*) token->data.doctype.name.ptr, (int) token->data.doctype.name.len);
