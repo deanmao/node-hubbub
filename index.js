@@ -18,8 +18,8 @@ function Parser(handler) {
   this.async = true;
 }
 
-Parser.prototype.parseComplete = function(chunk, cb) {
-  if (this.handler.writeTag) {
+Parser.prototype.parseComplete = function(chunk, cb, blocking) {
+  if (this.handler.writeTag || blocking) {
     this.parseChunk(chunk, cb, true);
   } else {
     this.parseChunk(chunk, cb);
