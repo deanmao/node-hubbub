@@ -128,6 +128,9 @@ void AsyncAfter(uv_work_t* req) {
 
             case HUBBUB_TOKEN_START_TAG:
               setobj(obj, jssym("type"), jsstr("start"));
+              if (token->selfClosing) {
+                setobj(obj, jssym("selfclosing"), Boolean::New(true));
+              }
               setObjectProperties(obj, token);
               break;
 
@@ -257,6 +260,11 @@ void Tokeniser::addToken(const hubbub_token *token) {
 
     case HUBBUB_TOKEN_START_TAG:
       mytoken->name = string((char*) token->data.tag.name.ptr, (int) token->data.tag.name.len);
+      if (token->data.tag.self_closing) {
+        mytoken->selfClosing = true;
+      } else {
+        mytoken->selfClosing = false;
+      }
       for (size_t i = 0; i < token->data.tag.n_attributes; i++) {
         MyAttribute *myattr = new MyAttribute();
         myattr->name = string((char *) token->data.tag.attributes[i].name.ptr, (int) token->data.tag.attributes[i].name.len);

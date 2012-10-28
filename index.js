@@ -38,6 +38,12 @@ Parser.prototype.write = function(el, obj) {
           el.attribs = obj.attributes;
         }
         this.handler.writeTag(el);
+        if (obj.selfclosing) {
+          el.name = '/' + el.name;
+          el.raw = '/' + el.raw;
+          el.data = '/' + el.data;
+          this.handler.writeTag(el);
+        }
       } else if (t === 'text') {
         el.raw = el.data;
         this.handler.writeText(el);
@@ -71,6 +77,10 @@ Parser.prototype.parseChunk = function(chunk, cb, blocking) {
         } else if (t === 'start') {
           el.type = 'tag';
           el.name = obj.name;
+          if (obj.selfclosing) {
+            el.raw = el.name + ' /'
+            el.selfclosing = true;
+          }
           self.write(el, obj);
         } else if (t === 'end') {
           el.type = 'tag';

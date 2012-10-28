@@ -25,6 +25,7 @@ struct MyAttribute {
 
 struct MyToken {
   hubbub_token_type type;
+  bool selfClosing;
   std::string name;
   std::string value;
   std::string data;
