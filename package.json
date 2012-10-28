@@ -4,7 +4,7 @@
   "keywords": ["html", "parser"],
   "homepage": "http://github.com/deanmao/node-hubbub",
   "description": "wrapper around libhubbub, node-htmlparser 1.x, 2.x api compatible",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "main": "./index.js",
   "gypfile": true,
   "licenses": [
