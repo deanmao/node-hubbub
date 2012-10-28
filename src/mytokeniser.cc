@@ -25,7 +25,7 @@ Persistent<Function> Tokeniser::constructor;
 
 Tokeniser::Tokeniser() {
   uv_mutex_init(&mutex_);
-  uv_sem_init(&sem_, 0);
+  pthread_cond_init(&cond_, NULL);
   parserutils_inputstream_create("UTF-8", 0, NULL, myrealloc, this, &stream_);
   hubbub_tokeniser_create(stream_, myrealloc, this, &tok_);
   hubbub_tokeniser_optparams params;
@@ -38,7 +38,7 @@ Tokeniser::Tokeniser() {
 Tokeniser::~Tokeniser() {
   delete stream_;
   uv_mutex_destroy(&mutex_);
-  uv_sem_destroy(&sem_);
+  pthread_cond_destroy(&cond_);
 }
 
 void Tokeniser::Initialize(Handle<Object> target) {
@@ -225,17 +225,17 @@ void Tokeniser::doWork(BWork *work) {
       ++sequence_;
     } else {
       pthread_mutex_unlock(&mutex_);
-      mach_timespec_t interval;
+      timespec interval;
       interval.tv_sec = 0;
       interval.tv_nsec = 10;
-      semaphore_timedwait(sem_, interval);
+      pthread_cond_timedwait(&cond_, &mutex_, &interval);
     }
   }
   work_ = work;
   parserutils_inputstream_append(stream_, (const uint8_t *) work->html, work->len);
   hubbub_tokeniser_run(tok_);
   pthread_mutex_unlock(&mutex_);
-  semaphore_signal(sem_);
+  pthread_cond_broadcast(&cond_);
 }
 
 void Tokeniser::addToken(const hubbub_token *token) {

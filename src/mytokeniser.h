@@ -65,7 +65,7 @@ class Tokeniser : public node::ObjectWrap {
   parserutils_inputstream *stream_;
   hubbub_tokeniser *tok_;
   uv_mutex_t mutex_;
-  uv_sem_t sem_;
+  pthread_cond_t cond_;
   unsigned int count_;
   unsigned int sequence_;
 };

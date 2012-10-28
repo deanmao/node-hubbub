@@ -113,7 +113,7 @@ function testparser2() {
 //   }
 // }
 
-// loopTest();
+loopTest();
 // testBlocking();
 // testNonBlocking();
 testparser2();
