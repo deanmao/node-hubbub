@@ -178,6 +178,7 @@ exports.runParserTests = function (tests, parserCtor, permutator, testHandler, r
             parser.done();
         }
 
+        console.log(builder.output);
         var testResult = exports.compareObjects(builder.output, test.expected);
         testHandler(testName, testResult, builder.dom, test.expected);
 

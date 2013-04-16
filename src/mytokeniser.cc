@@ -26,7 +26,8 @@ Persistent<Function> Tokeniser::constructor;
 Tokeniser::Tokeniser() {
   uv_mutex_init(&mutex_);
   pthread_cond_init(&cond_, NULL);
-  parserutils_inputstream_create("UTF-8", 0, NULL, myrealloc, this, &stream_);
+  // parserutils_inputstream_create("UTF-8", 2, NULL, myrealloc, this, &stream_);
+  parserutils_inputstream_create(NULL, 0, NULL, myrealloc, this, &stream_);
   hubbub_tokeniser_create(stream_, myrealloc, this, &tok_);
   hubbub_tokeniser_optparams params;
   params.token_handler.handler = token_handler;
@@ -197,8 +198,9 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
   Tokeniser* t = ObjectWrap::Unwrap<Tokeniser>(args.This());
   Local<String> s = args[0]->ToString();
   bool blocking = args[1]->ToBoolean()->IsTrue();
-  String::AsciiValue astr(s);
-  work->len = strlen(*astr);
+  v8::String::Utf8Value astr(s);
+  work->len = astr.length();
+  // work->html = new wchar_t[work->len + 1];
   work->html = new char[work->len + 1];
   strcpy(work->html, *astr);
   work->tokeniser = t;
@@ -208,7 +210,7 @@ Handle<Value> Tokeniser::Process(const Arguments& args) {
     AsyncWork(&work->request);
     AsyncAfter(&work->request);
   } else {
-    int status = uv_queue_work(uv_default_loop(), &work->request, AsyncWork, AsyncAfter);
+    int status = uv_queue_work(uv_default_loop(), &work->request, AsyncWork, (uv_after_work_cb)AsyncAfter);
     assert(status == 0);
   }
 
@@ -294,6 +296,7 @@ void Tokeniser::addToken(const hubbub_token *token) {
       break;
 
     case HUBBUB_TOKEN_CHARACTER:
+      //printf("'%.*s'\n", (int) token->data.character.len, token->data.character.ptr);
       mytoken->data = string((char*) token->data.character.ptr, (int) token->data.character.len);
       // check if the previous token was also a character, and if so, squash them together
       {

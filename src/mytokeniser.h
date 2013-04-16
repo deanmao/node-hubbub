@@ -14,6 +14,7 @@
 #include <parserutils/input/inputstream.h>
 #include <hubbub/hubbub.h>
 #include <utils/utils.h>
+#include <charset/detect.h>
 #include <tokeniser/tokeniser.h>
 
 

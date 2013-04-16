@@ -99,6 +99,15 @@ function testparser2() {
   });
 }
 
+function testutf8() {
+  var z = new binding.Tokeniser();
+  fs.readFile('utf.html', function(err, data) {
+    z.process(data.toString(), false, function(err, res) {
+      console.log(res);
+    });
+  });
+}
+
 // function stuff() {
 //   console.log('');
 //   var z = new binding.Tokeniser();
@@ -113,7 +122,8 @@ function testparser2() {
 //   }
 // }
 
-loopTest();
+//loopTest();
 // testBlocking();
 // testNonBlocking();
 // testparser2();
+testutf8();

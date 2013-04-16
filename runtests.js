@@ -79,48 +79,48 @@ var htmlTests = require('./tests/html');
 var parserTests = require('./tests/parser');
 
 var testResults = {};
-
-testUtils.runBuilderTests(
-      htmlTests
-    , htmlparser.Parser
-    , htmlparser.HtmlBuilder
-    , null
-    , function (testName, testResult, actual, expected) {
-        console.log("[" + testName + "]: " + (testResult ? "passed" : "FAILED"));
-    }, function (elapsed, passed, failed) {
-        testResults['HTML builder'] = {
-              elapsed: elapsed
-            , passed: passed
-            , failed: failed
-            };
-    });
-testUtils.runBuilderTests(
-      htmlTests
-    , htmlparser.Parser
-    , htmlparser.HtmlBuilder
-    , function (test) {
-        var newTest = {};
-        for (var key in test) {
-            if (!test.hasOwnProperty(key)) {
-                continue;
-            }
-            newTest[key] = (key === 'data') ?
-                test.data.join('').split('')
-                :
-                test[key]
-                ;
-        }
-        return newTest;
-    }
-    , function (testName, testResult, actual, expected) {
-        console.log("[" + testName + "]: " + (testResult ? "passed" : "FAILED"));
-    }, function (elapsed, passed, failed) {
-        testResults['HTML builder (streamed)'] = {
-              elapsed: elapsed
-            , passed: passed
-            , failed: failed
-            };
-    });
+// 
+// testUtils.runBuilderTests(
+//       htmlTests
+//     , htmlparser.Parser
+//     , htmlparser.HtmlBuilder
+//     , null
+//     , function (testName, testResult, actual, expected) {
+//         console.log("[" + testName + "]: " + (testResult ? "passed" : "FAILED"));
+//     }, function (elapsed, passed, failed) {
+//         testResults['HTML builder'] = {
+//               elapsed: elapsed
+//             , passed: passed
+//             , failed: failed
+//             };
+//     });
+// testUtils.runBuilderTests(
+//       htmlTests
+//     , htmlparser.Parser
+//     , htmlparser.HtmlBuilder
+//     , function (test) {
+//         var newTest = {};
+//         for (var key in test) {
+//             if (!test.hasOwnProperty(key)) {
+//                 continue;
+//             }
+//             newTest[key] = (key === 'data') ?
+//                 test.data.join('').split('')
+//                 :
+//                 test[key]
+//                 ;
+//         }
+//         return newTest;
+//     }
+//     , function (testName, testResult, actual, expected) {
+//         console.log("[" + testName + "]: " + (testResult ? "passed" : "FAILED"));
+//     }, function (elapsed, passed, failed) {
+//         testResults['HTML builder (streamed)'] = {
+//               elapsed: elapsed
+//             , passed: passed
+//             , failed: failed
+//             };
+//     });
 
 // testUtils.runBuilderTests(
 //       rssTests
@@ -177,48 +177,48 @@ testUtils.runParserTests(
             , failed: failed
             };
     });
-testUtils.runParserTests(
-      parserTests
-    , htmlparser.Parser
-    , function (test) {
-        var newTest = {};
-        for (var key in test) {
-            if (!test.hasOwnProperty(key)) {
-                continue;
-            }
-            newTest[key] = (key === 'data') ?
-                test.data.join('').split('')
-                :
-                test[key]
-                ;
-        }
-        return newTest;
-    }
-    , function (testName, testResult, actual, expected) {
-        console.log("[" + testName + "]: " + (testResult ? "passed" : "FAILED"));
-    }, function (elapsed, passed, failed) {
-        testResults['Parser (streamed)'] = {
-              elapsed: elapsed
-            , passed: passed
-            , failed: failed
-            };
-    });
-
-console.log('');
-console.log('Test Results');
-console.log('------------------');
-var passedTotal = 0;
-var failedTotal = 0;
-var elapsedTotal = 0;
-for (var testName in testResults) {
-    if (!testResults.hasOwnProperty(testName)) {
-        continue;
-    }
-    var test = testResults[testName];
-    passedTotal += test.passed;
-    failedTotal += test.failed;
-    elapsedTotal += test.elapsed;
-    console.log(testName + ': ' + test.passed + '/' + (test.passed + test.failed) + ' (' + Math.round(test.passed / (test.passed + test.failed) * 100) + '%) [' + test.elapsed + 'ms]');
-}
-console.log('------------------');
-console.log('Total: ' + passedTotal + '/' + (passedTotal + failedTotal) + ' (' + Math.round(passedTotal / (passedTotal + failedTotal) * 100) + '%) [' + elapsedTotal + 'ms]');
+// testUtils.runParserTests(
+//       parserTests
+//     , htmlparser.Parser
+//     , function (test) {
+//         var newTest = {};
+//         for (var key in test) {
+//             if (!test.hasOwnProperty(key)) {
+//                 continue;
+//             }
+//             newTest[key] = (key === 'data') ?
+//                 test.data.join('').split('')
+//                 :
+//                 test[key]
+//                 ;
+//         }
+//         return newTest;
+//     }
+//     , function (testName, testResult, actual, expected) {
+//         console.log("[" + testName + "]: " + (testResult ? "passed" : "FAILED"));
+//     }, function (elapsed, passed, failed) {
+//         testResults['Parser (streamed)'] = {
+//               elapsed: elapsed
+//             , passed: passed
+//             , failed: failed
+//             };
+//     });
+// 
+// console.log('');
+// console.log('Test Results');
+// console.log('------------------');
+// var passedTotal = 0;
+// var failedTotal = 0;
+// var elapsedTotal = 0;
+// for (var testName in testResults) {
+//     if (!testResults.hasOwnProperty(testName)) {
+//         continue;
+//     }
+//     var test = testResults[testName];
+//     passedTotal += test.passed;
+//     failedTotal += test.failed;
+//     elapsedTotal += test.elapsed;
+//     console.log(testName + ': ' + test.passed + '/' + (test.passed + test.failed) + ' (' + Math.round(test.passed / (test.passed + test.failed) * 100) + '%) [' + test.elapsed + 'ms]');
+// }
+// console.log('------------------');
+// console.log('Total: ' + passedTotal + '/' + (passedTotal + failedTotal) + ' (' + Math.round(passedTotal / (passedTotal + failedTotal) * 100) + '%) [' + elapsedTotal + 'ms]');
